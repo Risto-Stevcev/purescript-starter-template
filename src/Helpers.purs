@@ -1,14 +1,14 @@
 module Helpers where
 
 import Prelude ((==), Unit)
-import Data.Array (mapWithIndex)
-import Control.Monad.Eff (Eff)
 import DOM.Event.Types (Event)
 import Signal.Channel (CHANNEL, Channel)
 import Signal.Channel as Channel
+import Data.Array (mapWithIndex)
+import Control.Monad.Eff (Eff)
 
 send ∷ ∀ a e. Channel a → a → Event → Eff (channel ∷ CHANNEL | e) Unit
-send actions action _ = Channel.send actions action
+send channel action _ = Channel.send channel action
 
 applyAtIndex ∷ ∀ a. (a → a) → Int → Array a → Array a
 applyAtIndex fn index array =

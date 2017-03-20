@@ -5,5 +5,7 @@
 /.psc*
 /.psa*
 bundle.js
+bundle.js.map
 output
 node_modules
+*.vim
