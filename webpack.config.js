@@ -1,7 +1,10 @@
 var webpack = require('webpack')
 
 module.exports = {
-  entry: './entry.js',
+  entry: [
+    'webpack-hot-middleware/client',
+    './entry.js'
+  ],
 
   devtool: 'source-map',
 
@@ -24,6 +27,8 @@ module.exports = {
   plugins: [
     // new webpack.HotModuleReplacementPlugin(),
     // enable HMR globally
+    // OccurenceOrderPlugin is needed for webpack 1.x only 
+    new webpack.HotModuleReplacementPlugin(),
 
     new webpack.NamedModulesPlugin(),
     // prints more readable module names in the browser console on HMR updates
