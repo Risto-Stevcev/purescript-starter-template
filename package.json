@@ -16,7 +16,7 @@
     "pulp:run": "npm run pulp:build && pulp run",
     "pulp:test": "pulp build -I test -- --censor-lib --stash --source-maps && pulp test",
     "build": "npm run pulp:build && ./node_modules/.bin/webpack",
-    "hmr": "./node_modules/.bin/webpack-dev-server --hot --hot-only",
+    "start": "node app.js",
     "clean": "rm -rf .pulp-cache output bundle.js"
   },
   "devDependencies": {
