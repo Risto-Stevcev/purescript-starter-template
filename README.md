@@ -36,7 +36,7 @@ $ npm start
   called `travel`
   - To read the current state of the breadcrumb and pointer, run `travel.read()`. The pointer reflects the index of 
     your current position in the breadcrumb
-  - Use `travel.prev()()` and `travel.next()()` to traverse back and forth in time
+  - Use `travel.prev()` and `travel.next()` to traverse back and forth in time
   - If you execute an action, the breadcrumb will update providing the action and the new app state, and the pointer will 
     point to the end of the breadcrumb if it wasn't pointing there before
 

@@ -17,7 +17,7 @@
     "purescript-signal": "^8.1.0",
     "purescript-affjax": "^3.0.2",
     "purescript-routing": "^4.0.0",
-    "purescript-signal-time-travel": "^1.0.0"
+    "purescript-signal-time-travel": "^1.1.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^2.0.0"
