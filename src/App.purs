@@ -13,6 +13,7 @@ import Signal (sampleOn, runSignal, (~>), foldp, Signal)
 import Signal.DOM (animationFrame)
 import Signal.Channel (send, subscribe, channel) as Channel
 import Signal.Channel (CHANNEL, Channel)
+import Signal.TimeTravel (initialize) as TimeTravel
 import DOM (DOM)
 import DOM.Node.Types (elementToNode, Node)
 import DOM.Node.ParentNode (querySelector)
@@ -31,6 +32,7 @@ import Data.Foreign.Class (class IsForeign, class AsForeign, readProp, write, wr
 import Data.VirtualDOM (patch)
 import Data.VirtualDOM.DOM (api)
 import Control.Alt ((<|>))
+import Control.Monad.ST (ST)
 import Control.Monad.Aff (launchAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
@@ -84,7 +86,7 @@ update (AjaxPage action) _ = AjaxState Ajax.initialState
 
 changePage ∷ ∀ e. Channel Action → Router.Location
            → Eff (ajax ∷ AJAX, err ∷ EXCEPTION, console ∷ CONSOLE, channel ∷ CHANNEL | e) Unit
-changePage channel Router.Home = Channel.send channel (AjaxPage Ajax.Loading)
+changePage channel Router.Home = Channel.send channel (CounterListPage CounterList.Noop)
 changePage channel Router.CounterListPage = Channel.send channel (CounterListPage CounterList.Noop)
 changePage channel Router.AjaxPage = do
   Channel.send channel (AjaxPage Ajax.Loading)
@@ -106,21 +108,40 @@ app stateSignal channel target = do
 
 
 -- This captures the current state of the app so that we can inject it back on hot module reload
-foreign import _captureState ∷ Foreign → Unit 
+foreign import _captureState ∷ Foreign → Unit
 captureState ∷ ∀ a. (AsForeign a) ⇒ a → a
 captureState a = const a $ _captureState (write a)
 
 
-start ∷ ∀ e. F State
-      → Eff (ajax ∷ AJAX, err ∷ EXCEPTION, console ∷ CONSOLE, dom ∷ DOM, channel ∷ CHANNEL, timer ∷ TIMER | e) Unit
+-- | Used to attach the time travel debugger to the window object
+foreign import data WINDOW ∷ !
+foreign import setWindowProperty ∷ ∀ a effects. String → a → Eff (window ∷ WINDOW | effects) Unit
+
+
+start
+ ∷ ∀ effects
+ . F State
+ → Eff ( window ∷ WINDOW
+       , st ∷ ST { action ∷ Action, state ∷ State }
+       , ajax ∷ AJAX
+       , err ∷ EXCEPTION
+       , console ∷ CONSOLE
+       , dom ∷ DOM
+       , channel ∷ CHANNEL
+       , timer ∷ TIMER
+       | effects
+       ) Unit
 start state = do
   doc ← window >>= document >>= htmlDocumentToParentNode >>> pure
   targetElem ← querySelector "#content" doc >>= toMaybe >>> map elementToNode >>> pure
 
   channel ← Channel.channel (CounterListPage CounterList.Noop)
 
+  timeTravel ← TimeTravel.initialize channel update
+  setWindowProperty "travel" timeTravel
+
   let startState = either (const initialState) id $ runExcept state
-  let stateSignal = foldp (\a s → captureState $ update a s) startState $ Channel.subscribe channel
+  let stateSignal = foldp (\a s → captureState $ timeTravel.update a s) startState $ Channel.subscribe channel
 
   maybe (log "No div#content found!") (app stateSignal channel) targetElem
 
